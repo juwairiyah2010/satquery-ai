@@ -177,7 +177,7 @@ export default function SignUpPage() {
                   id="reg-fullname"
                   type="text"
                   className="auth-input with-icon"
-                  placeholder="e.g. Dr. Juwairiyah Scientist"
+                  placeholder="e.g. Dr. Rajesh Sharma"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
