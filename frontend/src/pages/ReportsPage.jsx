@@ -2,19 +2,31 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function ReportsPage() {
   const [reports, setReports] = useState([])
   const [loading, setLoading] = useState(true)
-  const [activeReport, setActiveReport] = useState(null)
 
   const fetchReports = async () => {
+    if (API_BASE) {
+      try {
+        const res = await axios.get(`${API_BASE}/api/reports`, { timeout: 4000 })
+        if (res.data?.reports) {
+          setReports(res.data.reports)
+          setLoading(false)
+          return
+        }
+      } catch (err) {
+        console.warn('Remote reports fetch failed, falling back to local workspace:', err.message)
+      }
+    }
+
     try {
-      const res = await axios.get(`${API_BASE}/api/reports`)
-      setReports(res.data.reports || [])
-    } catch (err) {
-      console.error('Failed to load reports:', err)
+      const localReports = JSON.parse(localStorage.getItem('satquery_user_reports') || '[]')
+      setReports(localReports)
+    } catch (e) {
+      console.warn('Failed to load local reports:', e)
     } finally {
       setLoading(false)
     }
@@ -26,11 +38,19 @@ export default function ReportsPage() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this decision report from your archive?')) return
+    if (API_BASE) {
+      try {
+        await axios.delete(`${API_BASE}/api/reports/${id}`)
+      } catch (err) {
+        console.warn('Remote delete failed:', err.message)
+      }
+    }
+    const updated = reports.filter(r => r.id !== id)
+    setReports(updated)
     try {
-      await axios.delete(`${API_BASE}/api/reports/${id}`)
-      setReports(reports.filter(r => r.id !== id))
-    } catch (err) {
-      alert('Failed to delete report: ' + (err.response?.data?.detail || err.message))
+      localStorage.setItem('satquery_user_reports', JSON.stringify(updated))
+    } catch (e) {
+      console.warn('Failed to update local storage:', e)
     }
   }
 
@@ -99,12 +119,12 @@ export default function ReportsPage() {
                   </button>
                   <button
                     onClick={() => {
-                      alert(`Opening report ${r.report_ref} for ${r.authority}`)
+                      alert(`Report Reference: ${r.report_ref}\nAuthority: ${r.authority}\nDirective: "${r.question}"\n\nSummary:\n${r.summary_text}`)
                     }}
                     className="how-btn"
                     style={{ fontSize: 11, padding: '4px 10px' }}
                   >
-                    Print Brief →
+                    View Brief →
                   </button>
                 </div>
               </div>

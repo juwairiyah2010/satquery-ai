@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function DashboardPage() {
   const { user } = useAuth()
@@ -15,15 +15,35 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function fetchDashboard() {
-      try {
-        const res = await axios.get(`${API_BASE}/api/dashboard/stats`)
-        if (res.data) {
-          setStats(res.data.stats || { total_analyses: 0, total_reports: 0, primary_modality: 'optical' })
-          setRecentAnalyses(res.data.recent_analyses || [])
-          setRecentReports(res.data.recent_reports || [])
+      if (API_BASE) {
+        try {
+          const res = await axios.get(`${API_BASE}/api/dashboard/stats`, { timeout: 4000 })
+          if (res.data) {
+            setStats(res.data.stats || { total_analyses: 0, total_reports: 0, primary_modality: 'optical' })
+            setRecentAnalyses(res.data.recent_analyses || [])
+            setRecentReports(res.data.recent_reports || [])
+            setLoading(false)
+            return
+          }
+        } catch (err) {
+          console.warn('Remote dashboard stats skipped/offline, checking local workspace:', err.message)
         }
-      } catch (err) {
-        console.error('Failed to fetch dashboard data:', err)
+      }
+
+      // Fallback to locally stored analyses & reports for offline/standalone Vercel preview
+      try {
+        const localAnalyses = JSON.parse(localStorage.getItem('satquery_user_analyses') || '[]')
+        const localReports = JSON.parse(localStorage.getItem('satquery_user_reports') || '[]')
+        
+        setStats({
+          total_analyses: localAnalyses.length,
+          total_reports: localReports.length,
+          primary_modality: localAnalyses[0]?.mode || 'optical'
+        })
+        setRecentAnalyses(localAnalyses.slice(0, 5))
+        setRecentReports(localReports.slice(0, 5))
+      } catch (e) {
+        console.warn('Failed to parse local analyses:', e)
       } finally {
         setLoading(false)
       }

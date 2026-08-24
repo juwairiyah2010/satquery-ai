@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const API_BASE = import.meta.env.VITE_API_URL || ''
 
 export default function HistoryPage() {
   const [analyses, setAnalyses] = useState([])
@@ -11,11 +11,24 @@ export default function HistoryPage() {
   const [filterMode, setFilterMode] = useState('all')
 
   const fetchHistory = async () => {
+    if (API_BASE) {
+      try {
+        const res = await axios.get(`${API_BASE}/api/analyses`, { timeout: 4000 })
+        if (res.data?.analyses) {
+          setAnalyses(res.data.analyses)
+          setLoading(false)
+          return
+        }
+      } catch (err) {
+        console.warn('Remote analyses fetch failed, falling back to local workspace:', err.message)
+      }
+    }
+
     try {
-      const res = await axios.get(`${API_BASE}/api/analyses`)
-      setAnalyses(res.data.analyses || [])
-    } catch (err) {
-      console.error('Failed to load analyses:', err)
+      const localAnalyses = JSON.parse(localStorage.getItem('satquery_user_analyses') || '[]')
+      setAnalyses(localAnalyses)
+    } catch (e) {
+      console.warn('Failed to load local analyses:', e)
     } finally {
       setLoading(false)
     }
@@ -27,11 +40,19 @@ export default function HistoryPage() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to remove this analysis from your history?')) return
+    if (API_BASE) {
+      try {
+        await axios.delete(`${API_BASE}/api/analyses/${id}`)
+      } catch (err) {
+        console.warn('Remote delete failed:', err.message)
+      }
+    }
+    const updated = analyses.filter(a => a.id !== id)
+    setAnalyses(updated)
     try {
-      await axios.delete(`${API_BASE}/api/analyses/${id}`)
-      setAnalyses(analyses.filter(a => a.id !== id))
-    } catch (err) {
-      alert('Failed to delete analysis: ' + (err.response?.data?.detail || err.message))
+      localStorage.setItem('satquery_user_analyses', JSON.stringify(updated))
+    } catch (e) {
+      console.warn('Failed to update local storage:', e)
     }
   }
 
