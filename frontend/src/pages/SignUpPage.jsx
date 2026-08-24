@@ -94,7 +94,7 @@ export default function SignUpPage() {
       {/* ══ LEFT BRANDING PANE ══ */}
       <div className="auth-brand-pane">
         <div className="auth-brand-overlay" />
-        
+
         {/* Top Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, zIndex: 2 }}>
           <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg,#0d9488,#0284c7)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 16px rgba(13,148,136,0.4)' }}>
@@ -149,7 +149,7 @@ export default function SignUpPage() {
       {/* ══ RIGHT FORM PANE ══ */}
       <div className="auth-form-pane" style={{ overflowY: 'auto' }}>
         <div className="auth-card fade-up" style={{ margin: 'auto 0' }}>
-          
+
           <div style={{ marginBottom: 24 }}>
             <h2 style={{ fontSize: 24, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 6px' }}>
               Create your SatQuery account
@@ -161,23 +161,23 @@ export default function SignUpPage() {
 
           {errorMsg && (
             <div className="auth-error-banner" role="alert">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ flexShrink: 0 }}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
               <span>{errorMsg}</span>
             </div>
           )}
 
           <form onSubmit={handleSubmit} noValidate>
-            
+
             {/* Full Name */}
             <div className="form-group">
               <label htmlFor="reg-fullname" className="form-label">Full Name</label>
               <div className="input-icon-wrapper">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="input-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="input-icon"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                 <input
                   id="reg-fullname"
                   type="text"
                   className="auth-input with-icon"
-                  placeholder="e.g. Dr. Rajesh Sharma"
+                  placeholder="e.g. Dr. ABC"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
@@ -189,7 +189,7 @@ export default function SignUpPage() {
             <div className="form-group" style={{ marginTop: 14 }}>
               <label htmlFor="reg-email" className="form-label">Email address</label>
               <div className="input-icon-wrapper">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="input-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="input-icon"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
                 <input
                   id="reg-email"
                   type="email"
@@ -234,7 +234,7 @@ export default function SignUpPage() {
             <div className="form-group" style={{ marginTop: 14 }}>
               <label htmlFor="reg-password" className="form-label">Password</label>
               <div className="input-icon-wrapper">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="input-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="input-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                 <input
                   id="reg-password"
                   type={showPassword ? 'text' : 'password'}
@@ -296,7 +296,7 @@ export default function SignUpPage() {
             <div className="form-group" style={{ marginTop: 14 }}>
               <label htmlFor="reg-conf-password" className="form-label">Confirm Password</label>
               <div className="input-icon-wrapper">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="input-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="input-icon"><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                 <input
                   id="reg-conf-password"
                   type={showPassword ? 'text' : 'password'}

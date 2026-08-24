@@ -15,6 +15,7 @@ import DashboardPage from './pages/DashboardPage'
 import HistoryPage from './pages/HistoryPage'
 import ReportsPage from './pages/ReportsPage'
 import ProfilePage from './pages/ProfilePage'
+import DisasterGroundingView from './components/DisasterGroundingView'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
@@ -1109,13 +1110,13 @@ ${predicted ? `* **Predicted (Multi-Source Projection):** ${predicted}\n` : ''}
                   SatQuery AI Intelligence Core
                 </span>
               </div>
-              <h2>Decision-Ready Briefing</h2>
-              <p>Automated Space-Data Intelligence & Anti-Hallucinating Decision Support</p>
+              <h2>SatQuery AI — Satellite Disaster Assessment</h2>
+              <p>Automated Space-Data Intelligence, Visual Grounding & Decision Support</p>
             </div>
             <div className="report-meta-tag">
               <div><strong>REF:</strong> {reportId}</div>
               <div><strong>DATE:</strong> {timestamp}</div>
-              <div><strong>INTENT:</strong> {result.intent || 'OBSERVATION'}</div>
+              <div><strong>INTENT:</strong> {result.intent || 'DISASTER_DETECTION'}</div>
             </div>
           </div>
 
@@ -1905,13 +1906,54 @@ function AnalysisWorkspacePage() {
               </div>
             </div>
 
+            {/* Disaster Analysis Mode Selector */}
+            <div style={{ marginBottom: 12, padding: '10px 12px', background: 'var(--bg-elevated)', borderRadius: 8, border: '1px solid var(--border-dim)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+                <span style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-3)' }}>
+                  🎯 Detect Disaster-Affected Areas
+                </span>
+                <span className="badge badge-teal" style={{ fontSize: 9 }}>Visual Grounding Active</span>
+              </div>
+              <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
+                {[
+                  { id: 'auto', label: 'Auto Detect', icon: '✨', defaultQ: 'Which areas are affected by flooding?' },
+                  { id: 'flood', label: 'Flood / Inundation', icon: '🌊', defaultQ: 'Highlight the flooded regions and new water coverage.' },
+                  { id: 'fire', label: 'Forest Fire / Burn Scar', icon: '🔥', defaultQ: 'Where has forest canopy fire damage spread?' },
+                  { id: 'landslide', label: 'Landslide & Scarp', icon: '⛰️', defaultQ: 'Identify slope failure and debris displacement zones.' },
+                ].map(dm => (
+                  <button
+                    key={dm.id}
+                    onClick={() => {
+                      setQuestion(dm.defaultQ)
+                    }}
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 600,
+                      padding: '4px 8px',
+                      borderRadius: 5,
+                      border: '1px solid var(--border)',
+                      background: 'var(--bg-card)',
+                      color: 'var(--text)',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4
+                    }}
+                  >
+                    <span>{dm.icon}</span>
+                    <span>{dm.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <textarea
               className="query-input"
               rows={3}
               value={question}
               onChange={e => setQuestion(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleRun() } }}
-              placeholder={`Ask ${activeDeptObj.title} questions (e.g. ${activeDeptObj.questions[0]})`}
+              placeholder={`Ask disaster questions (e.g. Which areas are affected by flooding?)`}
             />
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10 }}>
               <span style={{ fontSize: 11, color: 'var(--text-4)' }}>Enter ↵ to analyze · Shift+Enter for newline</span>
@@ -1919,7 +1961,7 @@ function AnalysisWorkspacePage() {
                 {loading ? (
                   <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56" /></svg>Checking & Verifying…</>
                 ) : (
-                  <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="5 3 19 12 5 21 5 3" /></svg>Run Analysis</>
+                  <><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polygon points="5 3 19 12 5 21 5 3" /></svg>Detect Affected Areas</>
                 )}
               </button>
             </div>
@@ -1934,10 +1976,15 @@ function AnalysisWorkspacePage() {
             {/* Example Queries Showcase */}
             <div style={{ marginTop: 14 }}>
               <p style={{ fontSize: 10, color: 'var(--text-4)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: '0 0 8px' }}>
-                Example Query Intents (Try these to test anti-hallucination)
+                Disaster Grounding Directives (Click to test)
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                {EXAMPLE_QUESTIONS.map((q, i) => (
+                {[
+                  { text: 'Which areas are affected by flooding?', icon: '🌊', category: 'Flood Delineation' },
+                  { text: 'Highlight the flooded regions and new water coverage.', icon: '🗺️', category: 'Visual Mask' },
+                  { text: 'Where did the flood spread compared to baseline?', icon: '🔄', category: 'Bi-Temporal Delta' },
+                  { text: 'Compare optical and SAR evidence for inundation.', icon: '📡', category: 'Cross-Modal' }
+                ].map((q, i) => (
                   <button
                     key={i}
                     onClick={() => setQuestion(q.text)}
@@ -1964,9 +2011,9 @@ function AnalysisWorkspacePage() {
               <div style={{ display: 'flex', gap: 6 }}>
                 {[0, 1, 2].map(i => <div key={i} className="pulse" style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--teal)', animationDelay: `${i * 0.2}s` }} />)}
               </div>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', margin: 0 }}>Verifying Data Requirements & Grounding…</p>
+              <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text)', margin: 0 }}>Detecting Disaster-Affected Regions & Grounding Evidence…</p>
               <p style={{ fontSize: 11, color: 'var(--text-3)', margin: 0 }}>
-                Query Understanding → Data Availability Check → Evidence Synthesis
+                Query Understanding → Sensor Delineation → Polygon Segmentation → Physical Calibration
               </p>
             </div>
           )}
@@ -1981,6 +2028,17 @@ function AnalysisWorkspacePage() {
                 <p style={{ fontSize: 12, color: '#dc2626', margin: 0, lineHeight: 1.6 }}>{error}</p>
               </div>
             </div>
+          )}
+
+          {/* ══ INTERACTIVE DISASTER VISUAL GROUNDING COMPONENT ══ */}
+          {result && (
+            <DisasterGroundingView
+              imageA={imageA}
+              imageB={imageB}
+              disasterData={result.disaster_assessment || result}
+              activeDept={activeDept}
+              onGenerateReport={() => setShowReport(true)}
+            />
           )}
 
           {/* Evidence-First Result Panel */}

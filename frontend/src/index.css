@@ -2050,5 +2050,35 @@ hr.dim { border: none; border-top: 1px solid var(--border-dim); }
   text-align: center;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   DISASTER VISUAL GROUNDING & REGION DELINEATION STYLES
+   ───────────────────────────────────────────────────────────── */
+
+.disaster-grounding-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.disaster-grounding-header {
+  padding: 16px 20px;
+  background: linear-gradient(to right, #f8fafc, #ffffff);
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 860px) {
+  .grounding-grid-responsive {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
 
 

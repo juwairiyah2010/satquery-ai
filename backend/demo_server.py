@@ -20,6 +20,9 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from disaster_agent import DisasterOrchestrator
+disaster_orchestrator = DisasterOrchestrator()
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Intent Taxonomy & Data Requirements Checklist
 # ─────────────────────────────────────────────────────────────────────────────
@@ -1229,6 +1232,19 @@ async def query_multi(
     )
     total_elapsed_ms = round(time.time() * 1000 - t0_ms, 1)
 
+    # Execute Disaster Visual Grounding & Region Segmentation
+    try:
+        disaster_assessment = disaster_orchestrator.process(
+            image_a=pil_a,
+            image_b=pil_b if has_b else None,
+            modality_a=type_a,
+            modality_b=type_b if has_b else None,
+            disaster_mode=department_mode if department_mode in ["disaster", "flood", "wildfire", "landslide"] else "auto",
+            question=question
+        )
+    except Exception as d_exc:
+        disaster_assessment = {"disaster_detected": False, "regions": [], "error": str(d_exc)}
+
     return JSONResponse({
         "answer": response_data["summary"],
         "headline": response_data["headline"],
@@ -1237,6 +1253,9 @@ async def query_multi(
         "observed": response_data["observed"],
         "inferred": response_data["inferred"],
         "predicted": response_data["predicted"],
+        "grounded_evidence": response_data["grounded_evidence"],
+        "inferred_insights": response_data["inferred_insights"],
+        "cannot_predict": response_data["cannot_predict"],
         "missing_data_explanation": response_data["missing_data_explanation"],
         "limitations": response_data["limitations"],
         "risk_level": response_data["risk_level"],
@@ -1258,6 +1277,8 @@ async def query_multi(
         "change_story": change_story,
         "cross_modal_analysis": cross_modal_analysis,
         "evidence_audit": evidence_audit,
+        "disaster_assessment": disaster_assessment,
+        "grounded_regions": disaster_assessment.get("regions", []),
         "trace": {
             "input_type": mode,
             "task_type": intent,
@@ -1267,6 +1288,38 @@ async def query_multi(
             "steps": steps,
         },
     })
+
+
+@app.post("/detect-disaster")
+async def detect_disaster(
+    file_a: UploadFile = File(...),
+    disaster_type: str = Form("auto"),
+    question: str = Form(""),
+    file_b: Optional[UploadFile] = File(default=None),
+    image_type_a: str = Form("optical"),
+    image_type_b: str = Form("optical"),
+):
+    """
+    Dedicated endpoint for disaster-area detection and visual region grounding.
+    """
+    bytes_a = await file_a.read()
+    pil_a = validate_and_load_image(bytes_a, file_a.filename or "image_a.png")
+
+    pil_b = None
+    if file_b is not None:
+        bytes_b = await file_b.read()
+        if len(bytes_b) > 0:
+            pil_b = validate_and_load_image(bytes_b, file_b.filename or "image_b.png")
+
+    result = disaster_orchestrator.process(
+        image_a=pil_a,
+        image_b=pil_b,
+        modality_a=image_type_a,
+        modality_b=image_type_b if pil_b else None,
+        disaster_mode=disaster_type,
+        question=question or "Detect disaster-affected areas"
+    )
+    return JSONResponse(result)
 
 
 @app.get("/gov-departments")
