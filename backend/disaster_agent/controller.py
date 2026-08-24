@@ -10,6 +10,7 @@ from .tools import (
     LandslideDetectionTool,
     CrossModalConsensusTool
 )
+from .annotator import generate_annotated_image, generate_change_map
 
 class DisasterOrchestrator:
     """
@@ -124,13 +125,35 @@ class DisasterOrchestrator:
             "steps": trace_steps
         }
 
-        # Attach geospatial information if available
-        if geo_metadata:
-            analysis_result["geo_metadata"] = geo_metadata
-        else:
-            analysis_result["geo_metadata"] = {
-                "has_coordinates": False,
-                "note": "Standard raster imagery without embedded GeoTIFF tags. Physical pixel percentages provided without coordinate fabrication."
-            }
+        # 6. Generate Dedicated Annotated Output Image (Preserving Original Image Untouched)
+        try:
+            annotated_url = generate_annotated_image(
+                original_img=image_a,
+                regions=analysis_result.get("regions", []),
+                disaster_type=target_disaster,
+                confidence_label=analysis_result.get("confidence", "High"),
+                title_suffix="Analysis"
+            )
+            analysis_result["annotated_image_url"] = annotated_url
+
+            if image_b is not None:
+                change_map_url = generate_change_map(
+                    img_a=image_a,
+                    img_b=image_b,
+                    regions=analysis_result.get("regions", []),
+                    disaster_type=target_disaster
+                )
+                analysis_result["change_map_url"] = change_map_url
+        except Exception as img_err:
+            print(f"[DisasterOrchestrator] Image annotation warning: {img_err}")
+            analysis_result["annotated_image_url"] = None
+
+        # Legend metadata
+        analysis_result["legend"] = {
+            "disaster_type": target_disaster,
+            "label": f"{target_disaster} Detected Affected Area",
+            "color_hex": "#06b6d4" if target_disaster == "Flood" else "#ef4444" if target_disaster == "Wildfire" else "#f59e0b",
+            "regions_count": len(analysis_result.get("regions", []))
+        }
 
         return analysis_result
