@@ -1245,9 +1245,17 @@ async def query_multi(
     except Exception as d_exc:
         disaster_assessment = {"disaster_detected": False, "regions": [], "error": str(d_exc)}
 
+    # If disaster_assessment computed dynamic pixel grounded summary, use it
+    final_summary = response_data["summary"]
+    final_headline = response_data["headline"]
+    if disaster_assessment and disaster_assessment.get("summary"):
+        if intent in ["WATER_BODY_ANALYSIS", "CHANGE_DETECTION", "FLOOD_DETECTION", "WILDFIRE_DETECTION", "LANDSLIDE_DETECTION"] or department_mode in ["water", "disaster", "forest", "agriculture"]:
+            final_summary = disaster_assessment["summary"]
+            final_headline = disaster_assessment.get("headline", final_headline)
+
     return JSONResponse({
-        "answer": response_data["summary"],
-        "headline": response_data["headline"],
+        "answer": final_summary,
+        "headline": final_headline,
         "answer_type": response_data["answer_type"],
         "forecast_status": response_data["forecast_status"],
         "observed": response_data["observed"],
@@ -1259,8 +1267,8 @@ async def query_multi(
         "missing_data_explanation": response_data["missing_data_explanation"],
         "limitations": response_data["limitations"],
         "risk_level": response_data["risk_level"],
-        "confidence": response_data["confidence"],
-        "confidence_label": response_data["confidence_label"],
+        "confidence": disaster_assessment.get("confidence_score", response_data["confidence"]) if isinstance(disaster_assessment.get("confidence_score"), float) else response_data["confidence"],
+        "confidence_label": disaster_assessment.get("confidence", response_data["confidence_label"]),
         "recommended_next_step": response_data["recommended_next_step"],
         "intent": intent,
         "intent_label": INTENTS[intent]["label"],
